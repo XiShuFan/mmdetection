@@ -82,7 +82,10 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
 
         num_levels = len(cls_scores)
 
-        featmap_sizes = [cls_scores[i].shape[-2:] for i in range(num_levels)]
+        # 图像的维度
+        image_dim = len(cls_scores[0].shape) - 2
+
+        featmap_sizes = [cls_scores[i].shape[-image_dim:] for i in range(num_levels)]
         mlvl_priors = self.prior_generator.grid_priors(
             featmap_sizes,
             dtype=cls_scores[0].dtype,
@@ -170,6 +173,10 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
         mlvl_bboxes = []
         mlvl_scores = []
         mlvl_labels = []
+
+        # 图像的维度
+        image_dim = len(cls_score_list[0].shape) - 1
+
         if with_score_factors:
             mlvl_score_factors = []
         else:
@@ -178,14 +185,33 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
                 enumerate(zip(cls_score_list, bbox_pred_list,
                               score_factor_list, mlvl_priors)):
 
-            assert cls_score.size()[-2:] == bbox_pred.size()[-2:]
+            assert cls_score.size()[-image_dim:] == bbox_pred.size()[-image_dim:]
 
-            bbox_pred = bbox_pred.permute(1, 2, 0).reshape(-1, 4)
+            # 注意图像维度
+            if image_dim == 2:
+                bbox_pred = bbox_pred.permute(1, 2, 0).reshape(-1, 4)
+            elif image_dim == 3:
+                bbox_pred = bbox_pred.permute(1, 2, 3, 0).reshape(-1, 6)
+            else:
+                raise TypeError('image dim not support')
+
             if with_score_factors:
-                score_factor = score_factor.permute(1, 2,
-                                                    0).reshape(-1).sigmoid()
-            cls_score = cls_score.permute(1, 2,
-                                          0).reshape(-1, self.cls_out_channels)
+                # 注意图像维度
+                if image_dim == 2:
+                    score_factor = score_factor.permute(1, 2, 0).reshape(-1).sigmoid()
+                elif image_dim == 3:
+                    score_factor = score_factor.permute(1, 2, 3, 0).reshape(-1).sigmoid()
+                else:
+                    raise TypeError('image dim not support')
+
+            # 注意图像维度
+            if image_dim == 2:
+                cls_score = cls_score.permute(1, 2, 0).reshape(-1, self.cls_out_channels)
+            elif image_dim == 3:
+                cls_score = cls_score.permute(1, 2, 3, 0).reshape(-1, self.cls_out_channels)
+            else:
+                raise TypeError('image dim not support')
+
             if self.use_sigmoid_cls:
                 scores = cls_score.sigmoid()
             else:
@@ -393,7 +419,10 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
 
         num_levels = len(cls_scores)
 
-        featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
+        # 图像维度
+        image_dim = len(cls_scores[0].shape) - 2
+
+        featmap_sizes = [featmap.size()[-image_dim:] for featmap in cls_scores]
         mlvl_priors = self.prior_generator.grid_priors(
             featmap_sizes,
             dtype=bbox_preds[0].dtype,
@@ -433,11 +462,16 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
         for cls_score, bbox_pred, score_factors, priors in zip(
                 mlvl_cls_scores, mlvl_bbox_preds, mlvl_score_factor,
                 mlvl_priors):
-            assert cls_score.size()[-2:] == bbox_pred.size()[-2:]
+            assert cls_score.size()[-image_dim:] == bbox_pred.size()[-image_dim:]
 
-            scores = cls_score.permute(0, 2, 3,
-                                       1).reshape(batch_size, -1,
-                                                  self.cls_out_channels)
+            # 注意维度
+            if image_dim == 2:
+                scores = cls_score.permute(0, 2, 3, 1).reshape(batch_size, -1, self.cls_out_channels)
+            elif image_dim == 3:
+                scores = cls_score.permute(0, 2, 3, 4, 1).reshape(batch_size, -1, self.cls_out_channels)
+            else:
+                raise TypeError('image dim not support')
+
             if self.use_sigmoid_cls:
                 scores = scores.sigmoid()
                 nms_pre_score = scores
@@ -446,10 +480,22 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
                 nms_pre_score = scores
 
             if with_score_factors:
-                score_factors = score_factors.permute(0, 2, 3, 1).reshape(
-                    batch_size, -1).sigmoid()
-            bbox_pred = bbox_pred.permute(0, 2, 3,
-                                          1).reshape(batch_size, -1, 4)
+                # 注意维度
+                if image_dim == 2:
+                    score_factors = score_factors.permute(0, 2, 3, 1).reshape(batch_size, -1).sigmoid()
+                elif image_dim == 3:
+                    score_factors = score_factors.permute(0, 2, 3, 4, 1).reshape(batch_size, -1).sigmoid()
+                else:
+                    raise TypeError('image dim not support')
+
+            # 注意维度
+            if image_dim == 2:
+                bbox_pred = bbox_pred.permute(0, 2, 3, 1).reshape(batch_size, -1, 4)
+            elif image_dim == 3:
+                bbox_pred = bbox_pred.permute(0, 2, 3, 4, 1).reshape(batch_size, -1, 6)
+            else:
+                raise TypeError('image dim not support')
+
             priors = priors.expand(batch_size, -1, priors.size(-1))
             # Get top-k predictions
             from mmdet.core.export import get_k_for_topk
@@ -479,9 +525,15 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
                 priors = priors.reshape(
                     -1, priors.size(-1))[transformed_inds, :].reshape(
                         batch_size, -1, priors.size(-1))
-                bbox_pred = bbox_pred.reshape(-1,
-                                              4)[transformed_inds, :].reshape(
-                                                  batch_size, -1, 4)
+
+                # 注意维度
+                if image_dim == 2:
+                    bbox_pred = bbox_pred.reshape(-1, 4)[transformed_inds, :].reshape(batch_size, -1, 4)
+                elif image_dim == 3:
+                    bbox_pred = bbox_pred.reshape(-1, 6)[transformed_inds, :].reshape(batch_size, -1, 6)
+                else:
+                    raise TypeError('image dim not support')
+
                 scores = scores.reshape(
                     -1, self.cls_out_channels)[transformed_inds, :].reshape(
                         batch_size, -1, self.cls_out_channels)

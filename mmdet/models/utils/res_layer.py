@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from mmcv.cnn import build_conv_layer, build_norm_layer
+from mmcv.cnn import build_downsample_layer
 from mmcv.runner import BaseModule, Sequential
 from torch import nn as nn
 
@@ -30,6 +31,7 @@ class ResLayer(Sequential):
                  num_blocks,
                  stride=1,
                  avg_down=False,
+                 avg_cfg=None,
                  conv_cfg=None,
                  norm_cfg=dict(type='BN'),
                  downsample_first=True,
@@ -43,7 +45,8 @@ class ResLayer(Sequential):
             if avg_down:
                 conv_stride = 1
                 downsample.append(
-                    nn.AvgPool2d(
+                    build_downsample_layer(
+                        avg_cfg,
                         kernel_size=stride,
                         stride=stride,
                         ceil_mode=True,

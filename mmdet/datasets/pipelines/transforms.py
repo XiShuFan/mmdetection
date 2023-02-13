@@ -329,6 +329,48 @@ class Resize:
         return repr_str
 
 
+
+@PIPELINES.register_module()
+class Resize3D:
+    """Resize images & bbox & mask.
+
+        简单实现，还没有缩放功能
+    """
+
+    def __init__(self):
+        pass
+
+    def _resize_img(self, results):
+        """Resize images with ``results['scale']``."""
+        for key in results.get('img_fields', ['img']):
+            img = results[key]
+
+            scale_factor = np.array([1, 1, 1, 1, 1, 1], dtype=np.float32)
+            results['img_shape'] = img.shape
+            # in case that there is no padding
+            results['pad_shape'] = img.shape
+            results['scale_factor'] = scale_factor
+
+    def _resize_bboxes(self, results):
+        """Resize bounding boxes with ``results['scale_factor']``."""
+        for key in results.get('bbox_fields', []):
+            bboxes = results[key] * results['scale_factor']
+            results[key] = bboxes
+
+    def __call__(self, results):
+        """Call function to resize images, bounding boxes, masks, semantic
+        segmentation map.
+        """
+
+        self._resize_img(results)
+        self._resize_bboxes(results)
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        return repr_str
+
+
 @PIPELINES.register_module()
 class RandomFlip:
     """Flip the image & bbox & mask.
@@ -662,6 +704,110 @@ class Pad:
             dict: Updated result dict.
         """
         self._pad_img(results)
+        self._pad_masks(results)
+        self._pad_seg(results)
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'(size={self.size}, '
+        repr_str += f'size_divisor={self.size_divisor}, '
+        repr_str += f'pad_to_square={self.pad_to_square}, '
+        repr_str += f'pad_val={self.pad_val})'
+        return repr_str
+
+
+@PIPELINES.register_module()
+class Pad3D:
+    """Pad the image & masks & segmentation map.
+
+    There are two padding modes: (1) pad to a fixed size and (2) pad to the
+    minimum size that is divisible by some number.
+    Added keys are "pad_shape", "pad_fixed_size", "pad_size_divisor",
+
+    Args:
+        size (tuple, optional): Fixed padding size.
+        size_divisor (int, optional): The divisor of padded size.
+        pad_to_square (bool): Whether to pad the image into a square.
+            Currently only used for YOLOX. Default: False.
+        pad_val (dict, optional): A dict for padding value, the default
+            value is `dict(img=0, masks=0, seg=255)`.
+    """
+
+    def __init__(self,
+                 size=None,
+                 size_divisor=None,
+                 pad_to_square=False,
+                 pad_val=dict(img=0, masks=0, seg=255)):
+        self.size = size
+        self.size_divisor = size_divisor
+        if isinstance(pad_val, float) or isinstance(pad_val, int):
+            warnings.warn(
+                'pad_val of float type is deprecated now, '
+                f'please use pad_val=dict(img={pad_val}, '
+                f'masks={pad_val}, seg=255) instead.', DeprecationWarning)
+            pad_val = dict(img=pad_val, masks=pad_val, seg=255)
+        assert isinstance(pad_val, dict)
+        self.pad_val = pad_val
+        self.pad_to_square = pad_to_square
+
+        if pad_to_square:
+            assert size is None and size_divisor is None, \
+                'The size and size_divisor must be None ' \
+                'when pad2square is True'
+        else:
+            assert size is not None or size_divisor is not None, \
+                'only one of size and size_divisor should be valid'
+            assert size is None or size_divisor is None
+
+    def _pad_img(self, results):
+        """Pad images according to ``self.size``."""
+        pad_val = self.pad_val.get('img', 0)
+        for key in results.get('img_fields', ['img']):
+            if self.pad_to_square:
+                max_size = max(results[key].shape[:3])
+                self.size = (max_size, max_size, max_size)
+            if self.size is not None:
+                padded_img = mmcv.impad3D(
+                    results[key], shape=self.size, pad_val=pad_val)
+            elif self.size_divisor is not None:
+                padded_img = mmcv.impad3D_to_multiple(
+                    results[key], self.size_divisor, pad_val=pad_val)
+            else:
+                raise RuntimeError('size and size_divisor are all None')
+            results[key] = padded_img
+        results['pad_shape'] = padded_img.shape
+        results['pad_fixed_size'] = self.size
+        results['pad_size_divisor'] = self.size_divisor
+
+    def _pad_masks(self, results):
+        """Pad masks according to ``results['pad_shape']``."""
+        pad_shape = results['pad_shape'][:3]
+        pad_val = self.pad_val.get('masks', 0)
+        for key in results.get('mask_fields', []):
+            raise NotImplementedError('_pad_masks in 3D')
+            results[key] = results[key].pad(pad_shape, pad_val=pad_val)
+
+    def _pad_seg(self, results):
+        """Pad semantic segmentation map according to
+        ``results['pad_shape']``."""
+        pad_val = self.pad_val.get('seg', 255)
+        for key in results.get('seg_fields', []):
+            results[key] = mmcv.impad3D(
+                results[key], shape=results['pad_shape'][:3], pad_val=pad_val)
+
+    def __call__(self, results):
+        """Call function to pad images, masks, semantic segmentation maps.
+
+        Args:
+            results (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Updated result dict.
+        """
+        self._pad_img(results)
+        return results
+        # 以下方法目前未实现
         self._pad_masks(results)
         self._pad_seg(results)
         return results

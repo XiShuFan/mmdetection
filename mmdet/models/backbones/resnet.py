@@ -4,6 +4,7 @@ import warnings
 import torch.nn as nn
 import torch.utils.checkpoint as cp
 from mmcv.cnn import build_conv_layer, build_norm_layer, build_plugin_layer
+from mmcv.cnn import build_downsample_layer
 from mmcv.runner import BaseModule
 from torch.nn.modules.batchnorm import _BatchNorm
 
@@ -378,9 +379,11 @@ class ResNet(BaseModule):
                  style='pytorch',
                  deep_stem=False,
                  avg_down=False,
+                 avg_cfg=None,
                  frozen_stages=-1,
                  conv_cfg=None,
                  norm_cfg=dict(type='BN', requires_grad=True),
+                 maxpool_cfg=None,
                  norm_eval=True,
                  dcn=None,
                  stage_with_dcn=(False, False, False, False),
@@ -404,7 +407,7 @@ class ResNet(BaseModule):
         elif pretrained is None:
             if init_cfg is None:
                 self.init_cfg = [
-                    dict(type='Kaiming', layer='Conv2d'),
+                    dict(type='Kaiming', layer=conv_cfg['type'] if conv_cfg is not None else 'Conv2d'),
                     dict(
                         type='Constant',
                         val=1,
@@ -440,9 +443,11 @@ class ResNet(BaseModule):
         self.style = style
         self.deep_stem = deep_stem
         self.avg_down = avg_down
+        self.avg_cfg = avg_cfg
         self.frozen_stages = frozen_stages
         self.conv_cfg = conv_cfg
         self.norm_cfg = norm_cfg
+        self.maxpool_cfg = maxpool_cfg
         self.with_cp = with_cp
         self.norm_eval = norm_eval
         self.dcn = dcn
@@ -475,6 +480,7 @@ class ResNet(BaseModule):
                 dilation=dilation,
                 style=self.style,
                 avg_down=self.avg_down,
+                avg_cfg=self.avg_cfg,
                 with_cp=with_cp,
                 conv_cfg=conv_cfg,
                 norm_cfg=norm_cfg,
@@ -608,7 +614,8 @@ class ResNet(BaseModule):
                 self.norm_cfg, stem_channels, postfix=1)
             self.add_module(self.norm1_name, norm1)
             self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        # self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.maxpool = build_downsample_layer(self.maxpool_cfg, kernel_size=3, stride=2, padding=1)
 
     def _freeze_stages(self):
         if self.frozen_stages >= 0:

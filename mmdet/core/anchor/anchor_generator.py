@@ -225,7 +225,7 @@ class AnchorGenerator:
 
         Return:
             list[torch.Tensor]: Anchors in multiple feature levels. \
-                The sizes of each tensor should be [N, 4], where \
+                The sizes of each tensor should be [N, 6], where \
                 N = width * height * num_base_anchors, width and height \
                 are the sizes of the corresponding feature level, \
                 num_base_anchors is the number of anchors for that level.

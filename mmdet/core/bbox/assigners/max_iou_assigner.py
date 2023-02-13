@@ -187,6 +187,7 @@ class MaxIoUAssigner(BaseAssigner):
         pos_inds = max_overlaps >= self.pos_iou_thr
         assigned_gt_inds[pos_inds] = argmax_overlaps[pos_inds] + 1
 
+        # 我也觉得不要用低质量匹配更好。而且如果anchor生成得足够多，也不需要担心gt box没有对应的boxes
         if self.match_low_quality:
             # Low-quality matching will overwrite the assigned_gt_inds assigned
             # in Step 3. Thus, the assigned gt might not be the best one for

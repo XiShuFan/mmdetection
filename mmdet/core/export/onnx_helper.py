@@ -42,6 +42,35 @@ def dynamic_clip_for_onnx(x1, y1, x2, y2, max_shape):
     y2 = y2 * max_shape[0]
     return x1, y1, x2, y2
 
+def dynamic_clip_for_onnx_3d(x1, y1, z1, x2, y2, z2, max_shape):
+    assert isinstance(
+        max_shape,
+        torch.Tensor), '`max_shape` should be tensor of (d,h,w) for onnx'
+
+    # scale by 1/max_shape
+    x1 = x1 / max_shape[2]
+    y1 = y1 / max_shape[1]
+    z1 = z1 / max_shape[0]
+    x2 = x2 / max_shape[2]
+    y2 = y2 / max_shape[1]
+    z2 = z2 / max_shape[0]
+
+    # clamp [0, 1]
+    x1 = torch.clamp(x1, 0, 1)
+    y1 = torch.clamp(y1, 0, 1)
+    z1 = torch.clamp(z1, 0, 1)
+    x2 = torch.clamp(x2, 0, 1)
+    y2 = torch.clamp(y2, 0, 1)
+    z2 = torch.clamp(z2, 0, 1)
+
+    # scale back
+    x1 = x1 * max_shape[2]
+    y1 = y1 * max_shape[1]
+    z1 = z1 * max_shape[0]
+    x2 = x2 * max_shape[2]
+    y2 = y2 * max_shape[1]
+    z2 = z2 * max_shape[0]
+    return x1, y1, z1, x2, y2, z2
 
 def get_k_for_topk(k, size):
     """Get k of TopK for onnx exporting.

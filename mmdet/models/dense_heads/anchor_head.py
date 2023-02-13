@@ -8,6 +8,7 @@ from mmcv.runner import force_fp32
 from mmdet.core import (anchor_inside_flags, build_assigner, build_bbox_coder,
                         build_prior_generator, build_sampler, images_to_levels,
                         multi_apply, unmap)
+from mmdet.core import anchor_inside_flags_3d
 from ..builder import HEADS, build_loss
 from .base_dense_head import BaseDenseHead
 from .dense_test_mixins import BBoxTestMixin
@@ -236,9 +237,16 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
                 num_total_pos (int): Number of positive samples in all images
                 num_total_neg (int): Number of negative samples in all images
         """
-        inside_flags = anchor_inside_flags(flat_anchors, valid_flags,
-                                           img_meta['img_shape'][:2],
-                                           self.train_cfg.allowed_border)
+        # 判断图像维度
+        if len(img_meta['img_shape']) == 2:
+            inside_flags = anchor_inside_flags(flat_anchors, valid_flags,
+                                               img_meta['img_shape'][:2],
+                                               self.train_cfg.allowed_border)
+        elif len(img_meta['img_shape']) == 3:
+            inside_flags = anchor_inside_flags_3d(flat_anchors, valid_flags,
+                                               img_meta['img_shape'][:3],
+                                               self.train_cfg.allowed_border)
+
         if not inside_flags.any():
             return (None, ) * 7
         # assign gt and sample anchors
@@ -425,28 +433,57 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
-        # classification loss
-        labels = labels.reshape(-1)
-        label_weights = label_weights.reshape(-1)
-        cls_score = cls_score.permute(0, 2, 3,
-                                      1).reshape(-1, self.cls_out_channels)
-        loss_cls = self.loss_cls(
-            cls_score, labels, label_weights, avg_factor=num_total_samples)
-        # regression loss
-        bbox_targets = bbox_targets.reshape(-1, 4)
-        bbox_weights = bbox_weights.reshape(-1, 4)
-        bbox_pred = bbox_pred.permute(0, 2, 3, 1).reshape(-1, 4)
-        if self.reg_decoded_bbox:
-            # When the regression loss (e.g. `IouLoss`, `GIouLoss`)
-            # is applied directly on the decoded bounding boxes, it
-            # decodes the already encoded coordinates to absolute format.
-            anchors = anchors.reshape(-1, 4)
-            bbox_pred = self.bbox_coder.decode(anchors, bbox_pred)
-        loss_bbox = self.loss_bbox(
-            bbox_pred,
-            bbox_targets,
-            bbox_weights,
-            avg_factor=num_total_samples)
+        # 2D图像
+        if len(cls_score.shape) == 4:
+            # classification loss
+            labels = labels.reshape(-1)
+            label_weights = label_weights.reshape(-1)
+            cls_score = cls_score.permute(0, 2, 3,
+                                          1).reshape(-1, self.cls_out_channels)
+            loss_cls = self.loss_cls(
+                cls_score, labels, label_weights, avg_factor=num_total_samples)
+            # regression loss
+            bbox_targets = bbox_targets.reshape(-1, 4)
+            bbox_weights = bbox_weights.reshape(-1, 4)
+            bbox_pred = bbox_pred.permute(0, 2, 3, 1).reshape(-1, 4)
+            if self.reg_decoded_bbox:
+                # When the regression loss (e.g. `IouLoss`, `GIouLoss`)
+                # is applied directly on the decoded bounding boxes, it
+                # decodes the already encoded coordinates to absolute format.
+                anchors = anchors.reshape(-1, 4)
+                bbox_pred = self.bbox_coder.decode(anchors, bbox_pred)
+            loss_bbox = self.loss_bbox(
+                bbox_pred,
+                bbox_targets,
+                bbox_weights,
+                avg_factor=num_total_samples)
+        # 3D图像
+        elif len(cls_score.shape) == 5:
+            # classification loss
+            labels = labels.reshape(-1)
+            label_weights = label_weights.reshape(-1)
+            cls_score = cls_score.permute(0, 2, 3, 4,
+                                          1).reshape(-1, self.cls_out_channels)
+            loss_cls = self.loss_cls(
+                cls_score, labels, label_weights, avg_factor=num_total_samples)
+            # regression loss
+            bbox_targets = bbox_targets.reshape(-1, 6)
+            bbox_weights = bbox_weights.reshape(-1, 6)
+            bbox_pred = bbox_pred.permute(0, 2, 3, 4, 1).reshape(-1, 6)
+            if self.reg_decoded_bbox:
+                # When the regression loss (e.g. `IouLoss`, `GIouLoss`)
+                # is applied directly on the decoded bounding boxes, it
+                # decodes the already encoded coordinates to absolute format.
+                anchors = anchors.reshape(-1, 6)
+                bbox_pred = self.bbox_coder.decode(anchors, bbox_pred)
+            loss_bbox = self.loss_bbox(
+                bbox_pred,
+                bbox_targets,
+                bbox_weights,
+                avg_factor=num_total_samples)
+        # 其他类型图像
+        else:
+            raise TypeError(f"Not supported shape {cls_score.shape}")
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
@@ -475,7 +512,8 @@ class AnchorHead(BaseDenseHead, BBoxTestMixin):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
-        featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
+        # 注意3D图像的大小
+        featmap_sizes = [featmap.size()[2:] for featmap in cls_scores]
         assert len(featmap_sizes) == self.prior_generator.num_levels
 
         device = cls_scores[0].device

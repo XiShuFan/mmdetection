@@ -75,7 +75,13 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
         # NOTE the batched image size information may be useful, e.g.
         # in DETR, this is needed for the construction of masks, which is
         # then used for the transformer_head.
-        batch_input_shape = tuple(imgs[0].size()[-2:])
+        # 判断图像是否是3D
+        if len(imgs[0].shape) == 3:
+            batch_input_shape = tuple(imgs[0].size()[-2:])
+        elif len(imgs[0].shape) == 4:
+            batch_input_shape = tuple(imgs[0].size()[-3:])
+        else:
+            raise TypeError(f"Not supported img shape {imgs[0].shape}")
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
 
@@ -123,6 +129,9 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
             if not isinstance(var, list):
                 raise TypeError(f'{name} must be a list, but got {type(var)}')
 
+        # 这里要考虑数据维度，三维还是二维
+        image_dim = len(imgs[0].shape) - 2
+
         num_augs = len(imgs)
         if num_augs != len(img_metas):
             raise ValueError(f'num of augmentations ({len(imgs)}) '
@@ -134,7 +143,7 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
         for img, img_meta in zip(imgs, img_metas):
             batch_size = len(img_meta)
             for img_id in range(batch_size):
-                img_meta[img_id]['batch_input_shape'] = tuple(img.size()[-2:])
+                img_meta[img_id]['batch_input_shape'] = tuple(img.size()[-image_dim:])
 
         if num_augs == 1:
             # proposals (List[List[Tensor]]): the outer list indicates

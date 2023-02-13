@@ -222,6 +222,7 @@ def train_detector(model,
             # Replace 'ImageToTensor' to 'DefaultFormatBundle'
             cfg.data.val.pipeline = replace_ImageToTensor(
                 cfg.data.val.pipeline)
+        # 如果test_mode设置为True，则annotation不会被加载
         val_dataset = build_dataset(cfg.data.val, dict(test_mode=True))
 
         val_dataloader = build_dataloader(val_dataset, **val_dataloader_args)

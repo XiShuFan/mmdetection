@@ -4,6 +4,7 @@ from mmcv.cnn import ConvModule
 
 from ..builder import HEADS
 from .anchor_head import AnchorHead
+from mmcv.cnn import build_conv_layer
 
 
 @HEADS.register_module()
@@ -83,13 +84,20 @@ class RetinaHead(AnchorHead):
                     padding=1,
                     conv_cfg=self.conv_cfg,
                     norm_cfg=self.norm_cfg))
-        self.retina_cls = nn.Conv2d(
-            self.feat_channels,
-            self.num_base_priors * self.cls_out_channels,
-            3,
-            padding=1)
-        self.retina_reg = nn.Conv2d(
-            self.feat_channels, self.num_base_priors * 4, 3, padding=1)
+        self.retina_cls = build_conv_layer(
+            cfg=self.conv_cfg,
+            in_channels=self.feat_channels,
+            out_channels=self.num_base_priors * self.cls_out_channels,
+            kernel_size=3,
+            padding=1
+        )
+        self.retina_reg = build_conv_layer(
+            cfg=self.conv_cfg,
+            in_channels=self.feat_channels,
+            out_channels=self.num_base_priors * (6 if self.conv_cfg['type'] == 'Conv3d' else 4),
+            kernel_size=3,
+            padding=1
+        )
 
     def forward_single(self, x):
         """Forward feature of a single scale level.
