@@ -1,6 +1,8 @@
-from mmcv.cnn.bricks.registry import DOWNSAMPLE_LAYERS
 from torch import nn
 from typing import Dict, Optional
+from mmcv.utils import Registry
+
+DOWNSAMPLE_LAYERS = Registry('downsample layer')
 
 DOWNSAMPLE_LAYERS.register_module('MaxPool1d', module=nn.MaxPool1d)
 DOWNSAMPLE_LAYERS.register_module('MaxPool2d', module=nn.MaxPool2d)
