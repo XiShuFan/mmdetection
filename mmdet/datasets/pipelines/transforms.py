@@ -13,6 +13,7 @@ from mmdet.core import BitmapMasks, PolygonMasks, find_inside_bboxes
 from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
 from mmdet.utils import log_img_scale
 from ..builder import PIPELINES
+from ...mmcv_xsf import impad3D, impad3D_to_multiple
 
 try:
     from imagecorruptions import corrupt
@@ -768,10 +769,10 @@ class Pad3D:
                 max_size = max(results[key].shape[:3])
                 self.size = (max_size, max_size, max_size)
             if self.size is not None:
-                padded_img = mmcv.impad3D(
+                padded_img = impad3D(
                     results[key], shape=self.size, pad_val=pad_val)
             elif self.size_divisor is not None:
-                padded_img = mmcv.impad3D_to_multiple(
+                padded_img = impad3D_to_multiple(
                     results[key], self.size_divisor, pad_val=pad_val)
             else:
                 raise RuntimeError('size and size_divisor are all None')
@@ -793,7 +794,7 @@ class Pad3D:
         ``results['pad_shape']``."""
         pad_val = self.pad_val.get('seg', 255)
         for key in results.get('seg_fields', []):
-            results[key] = mmcv.impad3D(
+            results[key] = impad3D(
                 results[key], shape=results['pad_shape'][:3], pad_val=pad_val)
 
     def __call__(self, results):

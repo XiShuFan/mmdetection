@@ -1,3 +1,6 @@
+import numpy as np
+import numbers
+import cv2
 def impad3D(img,
             *,
             shape=None,
