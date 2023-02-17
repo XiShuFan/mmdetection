@@ -102,7 +102,7 @@ model = dict(
         nms_pre=1000,
         min_bbox_size=0,
         score_thr=0.4,
-        nms=dict(type='nms', iou_threshold=0.4),
+        nms=dict(type='nms3d', iou_threshold=0.4),
         max_per_img=100),
     pretrained=None,
     init_cfg=None)
@@ -202,7 +202,8 @@ log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
 momentum_config = None
 timer_config = dict(type='IterTimerHook')
 custom_hooks = [dict(type='NumClassCheckHook')]
-evaluation = dict(interval=1, metric='bbox')
+evaluation = dict(
+    interval=1, metric='bbox', out_dir='D:/Dataset/ToothCOCO/val_pred')
 runner = dict(type='EpochBasedRunner', max_epochs=12)
 workflow = [('train', 1)]
 dist_params = dict(backend='nccl')

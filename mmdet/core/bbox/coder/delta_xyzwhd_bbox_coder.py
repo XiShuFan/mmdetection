@@ -181,7 +181,7 @@ def delta2bbox(rois,
                means=(0., 0., 0., 0., 0., 0.),
                stds=(1., 1., 1., 1., 1., 1.),
                max_shape=None,
-               whz_ratio_clip=16 / 1000,
+               whd_ratio_clip=16 / 1000,
                clip_border=True,
                add_ctr_clamp=False,
                ctr_clamp=32):
@@ -256,7 +256,7 @@ def delta2bbox(rois,
 
     dxyz_whd = pwhd * dxyz
 
-    max_ratio = np.abs(np.log(whz_ratio_clip))
+    max_ratio = np.abs(np.log(whd_ratio_clip))
     if add_ctr_clamp:
         dxyz_whd = torch.clamp(dxyz_whd, max=ctr_clamp, min=-ctr_clamp)
         dwhd = torch.clamp(dwhd, max=max_ratio)

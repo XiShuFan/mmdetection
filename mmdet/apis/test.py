@@ -6,6 +6,7 @@ import tempfile
 import time
 
 import mmcv
+import numpy as np
 import torch
 import torch.distributed as dist
 from mmcv.image import tensor2imgs
@@ -29,36 +30,62 @@ def single_gpu_test(model,
             result = model(return_loss=False, rescale=True, **data)
 
         batch_size = len(result)
-        if show or out_dir:
-            if batch_size == 1 and isinstance(data['img'][0], torch.Tensor):
-                img_tensor = data['img'][0]
-            else:
-                img_tensor = data['img'][0].data[0]
-            img_metas = data['img_metas'][0].data[0]
-            imgs = tensor2imgs(img_tensor, **img_metas[0]['img_norm_cfg'])
-            assert len(imgs) == len(img_metas)
-
-            for i, (img, img_meta) in enumerate(zip(imgs, img_metas)):
-                h, w, _ = img_meta['img_shape']
-                img_show = img[:h, :w, :]
-
-                ori_h, ori_w = img_meta['ori_shape'][:-1]
-                img_show = mmcv.imresize(img_show, (ori_w, ori_h))
-
-                if out_dir:
-                    out_file = osp.join(out_dir, img_meta['ori_filename'])
+        # 2D图像可以进行展示与保存
+        if result[0][0].shape[0] > 0 and result[0][0].shape[1] == 5:
+            if show or out_dir:
+                if batch_size == 1 and isinstance(data['img'][0], torch.Tensor):
+                    img_tensor = data['img'][0]
                 else:
-                    out_file = None
+                    img_tensor = data['img'][0].data[0]
+                img_metas = data['img_metas'][0].data[0]
+                imgs = tensor2imgs(img_tensor, **img_metas[0]['img_norm_cfg'])
+                assert len(imgs) == len(img_metas)
 
-                model.module.show_result(
-                    img_show,
-                    result[i],
-                    bbox_color=PALETTE,
-                    text_color=PALETTE,
-                    mask_color=PALETTE,
-                    show=show,
-                    out_file=out_file,
-                    score_thr=show_score_thr)
+                for i, (img, img_meta) in enumerate(zip(imgs, img_metas)):
+                    h, w, _ = img_meta['img_shape']
+                    img_show = img[:h, :w, :]
+
+                    ori_h, ori_w = img_meta['ori_shape'][:-1]
+                    img_show = mmcv.imresize(img_show, (ori_w, ori_h))
+
+                    if out_dir:
+                        out_file = osp.join(out_dir, img_meta['ori_filename'])
+                    else:
+                        out_file = None
+
+                    model.module.show_result(
+                        img_show,
+                        result[i],
+                        bbox_color=PALETTE,
+                        text_color=PALETTE,
+                        mask_color=PALETTE,
+                        show=show,
+                        out_file=out_file,
+                        score_thr=show_score_thr)
+        elif result[0][0].shape[0] > 0 and result[0][0].shape[1] == 7:
+            if out_dir:
+                # 需要保存标注有3D包围盒的标签文件
+                img_metas = data['img_metas'][0].data[0][0]
+                ori_filename = img_metas['ori_filename']
+                ori_shape = img_metas['ori_shape']
+                # 空标签文件
+                label_array = np.zeros(ori_shape)
+                for bbox_idx in range(result[0][0].shape[0]):
+                    bbox, score = result[0][0][bbox_idx][:6], result[0][0][bbox_idx][6:]
+                    # 将包围盒坐标值范围限制
+                    bbox[0:3] = np.clip(bbox[0:3], 1, ori_shape[2] - 1)
+                    bbox[1:3] = np.clip(bbox[1:3], 1, ori_shape[1] - 1)
+                    bbox[2:3] = np.clip(bbox[2:3], 1, ori_shape[0] - 1)
+                    bbox.astype(int)
+                    # 用bbox的索引作为标签值，接下来还要进一步修改
+                    label_array[int(bbox[2]):int(bbox[5]),
+                                int(bbox[1]):int(bbox[4]),
+                                int(bbox[0]):int(bbox[3])] = bbox_idx
+
+                import SimpleITK as sitk
+                label_itk = sitk.GetImageFromArray(label_array)
+                sitk.WriteImage(label_itk, osp.join(out_dir, ori_filename))
+
 
         # encode mask results
         if isinstance(result[0], tuple):

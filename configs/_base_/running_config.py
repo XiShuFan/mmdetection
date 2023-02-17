@@ -26,7 +26,7 @@ timer_config = dict(type='IterTimerHook')
 custom_hooks = [dict(type='NumClassCheckHook')]
 
 # eval hook，对应val数据集，优先级为 LOW
-evaluation = dict(interval=1, metric='bbox')
+evaluation = dict(interval=1, metric='bbox', out_dir='D:/Dataset/ToothCOCO/val_pred')
 
 """
 ====================================== 构造runner配置 =================================================

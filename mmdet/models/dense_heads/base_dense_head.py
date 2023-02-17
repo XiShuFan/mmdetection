@@ -7,6 +7,7 @@ from mmcv.ops import batched_nms
 from mmcv.runner import BaseModule, force_fp32
 
 from mmdet.core.utils import filter_scores_and_topk, select_single_mlvl
+from mmdet.mmcv_xsf import batched_nms_3d
 
 
 class BaseDenseHead(BaseModule, metaclass=ABCMeta):
@@ -318,8 +319,16 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
                 det_bboxes = torch.cat([mlvl_bboxes, mlvl_scores[:, None]], -1)
                 return det_bboxes, mlvl_labels
 
-            det_bboxes, keep_idxs = batched_nms(mlvl_bboxes, mlvl_scores,
-                                                mlvl_labels, cfg.nms)
+            # 在这里判断二维nms还是三维nms
+            if mlvl_bboxes.shape[1] == 4:
+                det_bboxes, keep_idxs = batched_nms(mlvl_bboxes, mlvl_scores,
+                                                    mlvl_labels, cfg.nms)
+            elif mlvl_bboxes.shape[1] == 6:
+                det_bboxes, keep_idxs = batched_nms_3d(mlvl_bboxes, mlvl_scores,
+                                                    mlvl_labels, cfg.nms)
+            else:
+                raise TypeError('not supported dim')
+
             det_bboxes = det_bboxes[:cfg.max_per_img]
             det_labels = mlvl_labels[keep_idxs][:cfg.max_per_img]
             return det_bboxes, det_labels
