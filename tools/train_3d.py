@@ -32,7 +32,7 @@ def parse_args():
                         help='the checkpoint file to resume from')
     parser.add_argument('--auto-resume', action='store_true',
                         help='resume from the latest checkpoint automatically')
-    parser.add_argument('--no-validate', action='store_true',
+    parser.add_argument('--no-validate', action='store_false',
                         help='whether not to evaluate the checkpoint during training')
     parser.add_argument('--seed', type=int, default=None,
                         help='random seed')
