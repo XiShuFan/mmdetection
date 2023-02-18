@@ -600,8 +600,8 @@ class ToothDataset(CustomDataset):
             dict[str, float]: COCO style evaluation metric.
         """
 
-        # 还没搞懂怎么计算指标
-        return None
+        # 还没搞懂怎么计算指标，返回一个空字典
+        return {"tooth dataset":"metrics not support"}
         
         metrics = metric if isinstance(metric, list) else [metric]
         allowed_metrics = ['bbox', 'segm', 'proposal', 'proposal_fast']
