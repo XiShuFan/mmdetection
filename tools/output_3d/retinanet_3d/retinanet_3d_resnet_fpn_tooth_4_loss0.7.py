@@ -2,10 +2,10 @@ model = dict(
     type='RetinaNet',
     backbone=dict(
         type='ResNet',
-        depth=18,
+        depth=50,
         in_channels=1,
         stem_channels=None,
-        base_channels=2,
+        base_channels=4,
         num_stages=4,
         strides=(1, 2, 2, 2),
         dilations=(1, 1, 1, 1),
@@ -28,8 +28,8 @@ model = dict(
         pretrained=None),
     neck=dict(
         type='FPN',
-        in_channels=[2, 4, 8, 16],
-        out_channels=2,
+        in_channels=[16, 32, 64, 128],
+        out_channels=16,
         num_outs=4,
         start_level=0,
         end_level=-1,
@@ -44,14 +44,14 @@ model = dict(
     bbox_head=dict(
         type='RetinaHead',
         num_classes=1,
-        in_channels=2,
+        in_channels=16,
         stacked_convs=4,
         conv_cfg=dict(type='Conv3d'),
         norm_cfg=dict(type='BN3d', requires_grad=True),
         anchor_generator=dict(
             type='AnchorGenerator3D',
             strides=[4, 8, 16, 32],
-            ratios=[(2, 1, 1)],
+            ratios=[(1, 1, 1), (2, 1, 1), (3, 1, 1)],
             scales=[1.0],
             base_sizes=(10, 20, 20, 30),
             scale_major=True,
@@ -65,7 +65,7 @@ model = dict(
             std=0.01,
             override=dict(
                 type='Normal', name='retina_cls', std=0.01, bias_prob=0.01)),
-        feat_channels=2,
+        feat_channels=4,
         reg_decoded_bbox=False,
         bbox_coder=dict(
             type='DeltaXYZWHDBBoxCoder',
@@ -86,8 +86,8 @@ model = dict(
     train_cfg=dict(
         assigner=dict(
             type='MaxIoUAssigner',
-            pos_iou_thr=0.4,
-            neg_iou_thr=0.3,
+            pos_iou_thr=0.5,
+            neg_iou_thr=0.4,
             min_pos_iou=0,
             gt_max_assign_all=False,
             ignore_iof_thr=-1,
@@ -101,8 +101,8 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.01,
-        nms=dict(type='nms3d', iou_threshold=0.01),
+        score_thr=0.5,
+        nms=dict(type='nms3d', iou_threshold=0.5),
         max_per_img=100),
     pretrained=None,
     init_cfg=None)
@@ -134,7 +134,8 @@ data = dict(
     workers_per_gpu=2,
     train=dict(
         type='ToothDataset',
-        ann_file='D:/Dataset/ToothCOCO/annotations/instances_train2023.json',
+        ann_file=
+        '/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/annotations/instances_train2023.json',
         pipeline=[
             dict(type='LoadNiiFromFile', to_float32=True),
             dict(type='LoadNiiAnnotations', with_bbox=True, with_label=True),
@@ -144,7 +145,8 @@ data = dict(
         ],
         classes=None,
         data_root=None,
-        img_prefix='D:/Dataset/ToothCOCO/train2023/',
+        img_prefix=
+        '/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/train2023/',
         seg_prefix=None,
         seg_suffix='.gz',
         proposal_file=None,
@@ -153,8 +155,9 @@ data = dict(
         file_client_args=dict(backend='disk')),
     val=dict(
         type='ToothDataset',
-        ann_file='D:/Dataset/ToothCOCO/annotations/instances_val2023.json',
-        img_prefix='D:/Dataset/ToothCOCO/val2023/',
+        ann_file=
+        '/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/annotations/instances_val2023.json',
+        img_prefix='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/val2023/',
         pipeline=[
             dict(type='LoadNiiFromFile', to_float32=True),
             dict(
@@ -172,8 +175,9 @@ data = dict(
         ]),
     test=dict(
         type='ToothDataset',
-        ann_file='D:/Dataset/ToothCOCO/annotations/instances_val2023.json',
-        img_prefix='D:/Dataset/ToothCOCO/val2023/',
+        ann_file=
+        '/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/annotations/instances_val2023.json',
+        img_prefix='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/val2023/',
         pipeline=[
             dict(type='LoadNiiFromFile', to_float32=True),
             dict(
@@ -189,22 +193,22 @@ data = dict(
                     dict(type='Collect3D', keys=['img'])
                 ])
         ]))
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
 lr_config = dict(
     policy='step',
     warmup='linear',
-    warmup_iters=10,
+    warmup_iters=20,
     warmup_ratio=0.001,
-    step=[8, 11])
+    step=[60])
 optimizer_config = dict(grad_clip=None)
-checkpoint_config = dict(interval=1)
+checkpoint_config = dict(interval=4)
 log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
 momentum_config = None
 timer_config = dict(type='IterTimerHook')
 custom_hooks = [dict(type='NumClassCheckHook')]
 evaluation = dict(
     interval=1, metric='bbox', out_dir='D:/Dataset/ToothCOCO/val_pred')
-runner = dict(type='EpochBasedRunner', max_epochs=12)
+runner = dict(type='EpochBasedRunner', max_epochs=100)
 workflow = [('train', 1)]
 dist_params = dict(backend='nccl')
 log_level = 'INFO'

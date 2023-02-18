@@ -163,9 +163,9 @@ model = dict(
         assigner=dict(
             type='MaxIoUAssigner',
             # 正样本bbox的IoU threshold，高于它为正样本
-            pos_iou_thr=0.4,
+            pos_iou_thr=0.5,
             # 负样本bbox的IoU 的threshold，低于他为负样本
-            neg_iou_thr=0.3,
+            neg_iou_thr=0.4,
             # 丢弃样本：在neg_iou_thr和pos_iou_thr之间的样本丢弃
             # 确定为正样本的最小IoU，以防存在gt bbox没有对应的bbox。与match_low_quality相关
             min_pos_iou=0,
