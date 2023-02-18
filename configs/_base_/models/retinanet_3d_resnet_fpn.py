@@ -4,13 +4,13 @@ model = dict(
     backbone=dict(
         type='ResNet',
         # resnet架构
-        depth=18,
+        depth=50,
         # 输入通道数
         in_channels=1,
         # stem部分输出通道数，默认与base_channel一致
         stem_channels=None,
         # 基准输出channel
-        base_channels=2,
+        base_channels=4,
         # resnet使用的阶段数，默认为4
         num_stages=4,
         # 每个stage第一个block的stride，用于减半长宽。第一个stage用maxpool减半长宽
@@ -54,9 +54,9 @@ model = dict(
     neck=dict(
         type='FPN',
         # 经过backbone输出的不同stage特征图channel
-        in_channels=[2, 4, 8, 16],
+        in_channels=[16, 32, 64, 128],
         # 经过neck输出的channel
-        out_channels=2,
+        out_channels=16,
         # neck需要输出多少个特征图
         num_outs=4,
         # 从backbone输出stage的起始编号
@@ -85,7 +85,7 @@ model = dict(
         # 数据集的类别数，不包括背景
         num_classes=1,
         # 输入特征图维度
-        in_channels=2,
+        in_channels=16,
         # RetinaHead的检测头需要堆叠的卷积层个数
         stacked_convs=4,
         # 卷积层配置
@@ -98,7 +98,7 @@ model = dict(
             # 多阶段特征图相对于原始图像的stride
             strides=[4, 8, 16, 32],
             # anchor的depth和height和width与base_size的比例
-            ratios=[(2, 1, 1)],
+            ratios=[(1, 1, 1), (2, 1, 1), (3, 1, 1)],
             # anchor的缩放比例，不可以与octave_base_scale和scales_per_octave同时设置
             scales=[1.0],
             # 多阶段特征图的anchor的基础大小，如果None，则使用strides（挺合理）
@@ -128,7 +128,7 @@ model = dict(
         ),
 
         # RetinaHead检测头使用的hidden layer的channel
-        feat_channels=2,
+        feat_channels=4,
         # 当使用IoULoss类型时，设置为true，将会使用绝对坐标计算loss
         reg_decoded_bbox=False,
         # 包围盒编解码
@@ -163,9 +163,9 @@ model = dict(
         assigner=dict(
             type='MaxIoUAssigner',
             # 正样本bbox的IoU threshold，高于它为正样本
-            pos_iou_thr=0.4,
+            pos_iou_thr=0.5,
             # 负样本bbox的IoU 的threshold，低于他为负样本
-            neg_iou_thr=0.3,
+            neg_iou_thr=0.4,
             # 丢弃样本：在neg_iou_thr和pos_iou_thr之间的样本丢弃
             # 确定为正样本的最小IoU，以防存在gt bbox没有对应的bbox。与match_low_quality相关
             min_pos_iou=0,
@@ -192,9 +192,9 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.4,
+        score_thr=0.5,
         # 得写一个nms3D
-        nms=dict(type='nms3d', iou_threshold=0.4),
+        nms=dict(type='nms3d', iou_threshold=0.5),
         max_per_img=100
     ),
     # 弃用

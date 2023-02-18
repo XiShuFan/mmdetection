@@ -40,7 +40,7 @@ data = dict(
     train=dict(
         type='ToothDataset',
         # 标注文件
-        ann_file='D:/Dataset/ToothCOCO/annotations/instances_train2023.json',
+        ann_file='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/annotations/instances_train2023.json',
         # 数据集预处理，到最终输出的流程
         pipeline=train_pipeline,
         # 指定的物体类别，如果None，则使用默认的所有类别
@@ -48,7 +48,7 @@ data = dict(
         # ann_file存在的目录，不用管
         data_root=None,
         # 图像所在目录
-        img_prefix='D:/Dataset/ToothCOCO/train2023/',
+        img_prefix='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/train2023/',
         # 分割图所在目录
         seg_prefix=None,
         # 分割图片的后缀
@@ -65,15 +65,15 @@ data = dict(
     # 验证数据集
     val=dict(
         type='ToothDataset',
-        ann_file='D:/Dataset/ToothCOCO/annotations/instances_val2023.json',
-        img_prefix='D:/Dataset/ToothCOCO/val2023/',
+        ann_file='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/annotations/instances_val2023.json',
+        img_prefix='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/val2023/',
         pipeline=test_pipeline
     ),
     # 测试数据集
     test=dict(
         type='ToothDataset',
-        ann_file='D:/Dataset/ToothCOCO/annotations/instances_val2023.json',
-        img_prefix='D:/Dataset/ToothCOCO/val2023/',
+        ann_file='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/annotations/instances_val2023.json',
+        img_prefix='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/val2023/',
         pipeline=test_pipeline
     )
 )
