@@ -101,8 +101,8 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.4,
-        nms=dict(type='nms3d', iou_threshold=0.4),
+        score_thr=0.01,
+        nms=dict(type='nms3d', iou_threshold=0.01),
         max_per_img=100),
     pretrained=None,
     init_cfg=None)
