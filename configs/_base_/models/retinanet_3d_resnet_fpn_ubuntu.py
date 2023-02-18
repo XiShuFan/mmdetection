@@ -98,7 +98,7 @@ model = dict(
             # 多阶段特征图相对于原始图像的stride
             strides=[4, 8, 16, 32],
             # anchor的depth和height和width与base_size的比例
-            ratios=[(2, 1, 1)],
+            ratios=[(1, 1, 1), (2, 1, 1), (3, 1, 1)],
             # anchor的缩放比例，不可以与octave_base_scale和scales_per_octave同时设置
             scales=[1.0],
             # 多阶段特征图的anchor的基础大小，如果None，则使用strides（挺合理）
@@ -192,9 +192,9 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.01,
+        score_thr=0.5,
         # 得写一个nms3D
-        nms=dict(type='nms3d', iou_threshold=0.01),
+        nms=dict(type='nms3d', iou_threshold=0.5),
         max_per_img=100
     ),
     # 弃用
