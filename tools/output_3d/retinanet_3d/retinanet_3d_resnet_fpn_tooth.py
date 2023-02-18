@@ -207,8 +207,11 @@ log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
 momentum_config = None
 timer_config = dict(type='IterTimerHook')
 custom_hooks = [dict(type='NumClassCheckHook')]
+pred_root = '/media/g704-server/新加卷/XiShuFan/Dataset/'
 evaluation = dict(
-    interval=1, metric='bbox', out_dir='D:/Dataset/ToothCOCO/val_pred')
+    interval=1,
+    metric='bbox',
+    out_dir='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/val_pred')
 runner = dict(type='EpochBasedRunner', max_epochs=100)
 workflow = [('train', 1)]
 dist_params = dict(backend='nccl')

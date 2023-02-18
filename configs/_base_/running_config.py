@@ -25,8 +25,10 @@ timer_config = dict(type='IterTimerHook')
 # 自定义hook
 custom_hooks = [dict(type='NumClassCheckHook')]
 
+pred_root = '/media/g704-server/新加卷/XiShuFan/Dataset/'
+# pred_root = 'D:/Dataset/'
 # eval hook，对应val数据集，优先级为 LOW
-evaluation = dict(interval=1, metric='bbox', out_dir='D:/Dataset/ToothCOCO/val_pred')
+evaluation = dict(interval=1, metric='bbox', out_dir=pred_root+'ToothCOCO/val_pred')
 
 """
 ====================================== 构造runner配置 =================================================
