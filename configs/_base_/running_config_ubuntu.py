@@ -1,5 +1,5 @@
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
 
 """
 ======================================== 构造hooks的配置 =========================================
@@ -9,15 +9,15 @@ lr_config = dict(
     policy='step',
     warmup='linear',
     warmup_iters=20,
-    warmup_ratio=0.001,
-    step=[40, 80]
+    warmup_ratio=0.0001,
+    step=[70, 90]
 )
 # 反向传播+参数更新
 optimizer_config = dict(grad_clip=None)
 # 保存ckpt
-checkpoint_config = dict(interval=5)
+checkpoint_config = dict(interval=10)
 # 日志记录
-log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
+log_config = dict(interval=2, hooks=[dict(type='TextLoggerHook')])
 # 动量更新，用于3D目标检测
 momentum_config = None
 # 迭代一次时间统计
@@ -32,7 +32,7 @@ evaluation = dict(interval=1, metric='bbox', out_dir='/media/g704-server/xsf_tmp
 ====================================== 构造runner配置 =================================================
 """
 # 大部分情况下，按照epoch就行。不指定的话，默认EpochBasedRunner
-runner = dict(type='EpochBasedRunner', max_epochs=12)
+runner = dict(type='EpochBasedRunner', max_epochs=100)
 
 """
 ====================================== workflow ======================================================

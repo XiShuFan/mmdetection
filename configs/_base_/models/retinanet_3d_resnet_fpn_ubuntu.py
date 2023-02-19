@@ -10,7 +10,7 @@ model = dict(
         # stem部分输出通道数，默认与base_channel一致
         stem_channels=None,
         # 基准输出channel
-        base_channels=4,
+        base_channels=64,
         # resnet使用的阶段数，默认为4
         num_stages=4,
         # 每个stage第一个block的stride，用于减半长宽。第一个stage用maxpool减半长宽
@@ -28,7 +28,7 @@ model = dict(
         # avg pool 配置
         avg_cfg=dict(type='AvgPool3d'),
         # 需要冻结的层
-        frozen_stages=-1,
+        frozen_stages=1,
         # 卷积层配置，可以更改为Conv1d, Conv2d, Conv3d。但是不要去改kernel等参数，因为这个是公用的，不同层不一样
         conv_cfg=dict(type='Conv3d'),
         # bn层配置，可以更改为BN1d, BN2d, BN3d
@@ -36,11 +36,11 @@ model = dict(
         # max pool配置
         maxpool_cfg=dict(type='MaxPool3d'),
         # bn层是否使用eval模式，不更新参数
-        norm_eval=False,
+        norm_eval=True,
         # 加载预训练模型，或者初始化方法
-        init_cfg=dict(type='Kaiming', layer='Conv3d'),
+        init_cfg=dict(type='Pretrained', checkpoint='/media/g704-server/新加卷/XiShuFan/pretrain/resnet_50.pth'),
         # dict(type='Pretrained', checkpoint='../checkpoints/resnet/resnet50-19c8e357.pth')
-        # dict(type='Kaiming', layer='Conv2d')
+        # dict(type='Kaiming', layer='Conv3d')
         # 是否在最后一个bn层初始化为0
         zero_init_residual=True,
 
@@ -54,13 +54,13 @@ model = dict(
     neck=dict(
         type='FPN',
         # 经过backbone输出的不同stage特征图channel
-        in_channels=[16, 32, 64, 128],
+        in_channels=[256, 512, 1024, 2048],
         # 经过neck输出的channel
         out_channels=16,
         # neck需要输出多少个特征图
-        num_outs=4,
+        num_outs=3,
         # 从backbone输出stage的起始编号
-        start_level=0,
+        start_level=1,
         # 从backbone输出stage的结束编号
         end_level=-1,
         # 增加卷积获得额外的输出，否则使用maxpool获得额外的输出。可选参数：on_input, on_lateral, on_output
@@ -96,13 +96,13 @@ model = dict(
         anchor_generator=dict(
             type='AnchorGenerator3D',
             # 多阶段特征图相对于原始图像的stride
-            strides=[4, 8, 16, 32],
+            strides=[8, 16, 32],
             # anchor的depth和height和width与base_size的比例
-            ratios=[(1.5, 1, 1), (2.5, 1, 1), (3.5, 1, 1)],
+            ratios=[(1.5, 1.0, 1.0), (2.0, 1.0, 0.5), (2.0, 1.0, 1.0), (1.5, 1.0, 0.5), (1.5, 0.5, 0.5)],
             # anchor的缩放比例，不可以与octave_base_scale和scales_per_octave同时设置
             scales=[1.0],
             # 多阶段特征图的anchor的基础大小，如果None，则使用strides（挺合理）
-            base_sizes=(10, 20, 20, 30),
+            base_sizes=(25, 25, 25),
             # 是否先乘上缩放因子，再乘上宽高比
             scale_major=True,
             # The base scale of octave
@@ -152,20 +152,21 @@ model = dict(
             gamma=2.0,
             alpha=0.25,
             reduction='mean',
-            loss_weight=1.0,
+            loss_weight=1.5,
             activated=False
         ),
         # 包围盒回归loss
-        loss_bbox=dict(type='L1Loss', reduction='mean', loss_weight=2.0)
+        # 这个设置大了的话，分类会出比较多的问题
+        loss_bbox=dict(type='L1Loss', reduction='mean', loss_weight=1.5)
     ),
     # 训练配置，在train.py代码中使用，会被添加到bbox_head中
     train_cfg=dict(
         assigner=dict(
             type='MaxIoUAssigner',
             # 正样本bbox的IoU threshold，高于它为正样本
-            pos_iou_thr=0.3,
+            pos_iou_thr=0.5,
             # 负样本bbox的IoU 的threshold，低于他为负样本
-            neg_iou_thr=0.2,
+            neg_iou_thr=0.4,
             # 丢弃样本：在neg_iou_thr和pos_iou_thr之间的样本丢弃
             # 确定为正样本的最小IoU，以防存在gt bbox没有对应的bbox。与match_low_quality相关
             min_pos_iou=0,
@@ -192,9 +193,9 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.6,
+        score_thr=0.4,
         # 得写一个nms3D
-        nms=dict(type='nms3d', iou_threshold=0.6),
+        nms=dict(type='nms3d', iou_threshold=0.3),
         max_per_img=100
     ),
     # 弃用

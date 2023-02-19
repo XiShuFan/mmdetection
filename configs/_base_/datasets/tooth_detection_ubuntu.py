@@ -34,7 +34,7 @@ data_root = '/media/g704-server/新加卷/XiShuFan/Dataset/'
 data = dict(
     # 本配置中没有指明dataloader，在代码中会自动按照下面两个参数设置
     # 每张gpu处理多少张图片
-    samples_per_gpu=2,
+    samples_per_gpu=1,
     # 加载图片用多少个worker
     workers_per_gpu=2,
     # 训练数据集
