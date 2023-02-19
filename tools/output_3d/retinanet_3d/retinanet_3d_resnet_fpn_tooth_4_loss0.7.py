@@ -101,8 +101,8 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.5,
-        nms=dict(type='nms3d', iou_threshold=0.5),
+        score_thr=0.2,
+        nms=dict(type='nms3d', iou_threshold=0.2),
         max_per_img=100),
     pretrained=None,
     init_cfg=None)
@@ -207,13 +207,13 @@ momentum_config = None
 timer_config = dict(type='IterTimerHook')
 custom_hooks = [dict(type='NumClassCheckHook')]
 evaluation = dict(
-    interval=1, metric='bbox', out_dir='D:/Dataset/ToothCOCO/val_pred')
-runner = dict(type='EpochBasedRunner', max_epochs=100)
+    interval=1, metric='bbox', out_dir='/media/g704-server/xsf_tmp_dir')
+runner = dict(type='EpochBasedRunner', max_epochs=120)
 workflow = [('train', 1)]
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None
-resume_from = None
+resume_from = 'output_3d/retinanet_3d/epoch_100_4_loss0.7.pth'
 opencv_num_threads = 0
 mp_start_method = 'fork'
 auto_scale_lr = dict(enable=False, base_batch_size=16)

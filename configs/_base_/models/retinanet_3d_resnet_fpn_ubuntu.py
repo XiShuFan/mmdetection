@@ -66,9 +66,9 @@ model = dict(
         # 增加卷积获得额外的输出，否则使用maxpool获得额外的输出。可选参数：on_input, on_lateral, on_output
         add_extra_convs='on_input',
         # 是否在extra_convs之前添加relu
-        relu_before_extra_convs=True,
+        relu_before_extra_convs=False,
         # 是否在lateral卷积层之前使用BN
-        no_norm_on_lateral=True,
+        no_norm_on_lateral=False,
         # 卷积层配置
         conv_cfg=dict(type='Conv3d'),
         # BN层配置
@@ -98,7 +98,7 @@ model = dict(
             # 多阶段特征图相对于原始图像的stride
             strides=[4, 8, 16, 32],
             # anchor的depth和height和width与base_size的比例
-            ratios=[(1, 1, 1), (2, 1, 1), (3, 1, 1)],
+            ratios=[(1.5, 1, 1), (2.5, 1, 1), (3.5, 1, 1)],
             # anchor的缩放比例，不可以与octave_base_scale和scales_per_octave同时设置
             scales=[1.0],
             # 多阶段特征图的anchor的基础大小，如果None，则使用strides（挺合理）
@@ -128,7 +128,7 @@ model = dict(
         ),
 
         # RetinaHead检测头使用的hidden layer的channel
-        feat_channels=2,
+        feat_channels=16,
         # 当使用IoULoss类型时，设置为true，将会使用绝对坐标计算loss
         reg_decoded_bbox=False,
         # 包围盒编解码
@@ -156,16 +156,16 @@ model = dict(
             activated=False
         ),
         # 包围盒回归loss
-        loss_bbox=dict(type='L1Loss', reduction='mean', loss_weight=1.0)
+        loss_bbox=dict(type='L1Loss', reduction='mean', loss_weight=2.0)
     ),
     # 训练配置，在train.py代码中使用，会被添加到bbox_head中
     train_cfg=dict(
         assigner=dict(
             type='MaxIoUAssigner',
             # 正样本bbox的IoU threshold，高于它为正样本
-            pos_iou_thr=0.5,
+            pos_iou_thr=0.3,
             # 负样本bbox的IoU 的threshold，低于他为负样本
-            neg_iou_thr=0.4,
+            neg_iou_thr=0.2,
             # 丢弃样本：在neg_iou_thr和pos_iou_thr之间的样本丢弃
             # 确定为正样本的最小IoU，以防存在gt bbox没有对应的bbox。与match_low_quality相关
             min_pos_iou=0,
@@ -177,7 +177,7 @@ model = dict(
             ignore_wrt_candidates=True,
             # 是否允许低质量匹配，与min_pos_iou相关。看了代码，我认为不要用这个更好。
             # 但是加上这个好像训练收敛了，我觉得原因在于我的anchor没有构造好，导致gt对应不到anchor
-            match_low_quality=False,
+            match_low_quality=True,
             # 在gpu上实现
             gpu_assign_thr=-1,
             # 计算IoU的方法
@@ -192,9 +192,9 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.5,
+        score_thr=0.6,
         # 得写一个nms3D
-        nms=dict(type='nms3d', iou_threshold=0.5),
+        nms=dict(type='nms3d', iou_threshold=0.6),
         max_per_img=100
     ),
     # 弃用

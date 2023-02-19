@@ -34,8 +34,8 @@ model = dict(
         start_level=0,
         end_level=-1,
         add_extra_convs='on_input',
-        relu_before_extra_convs=True,
-        no_norm_on_lateral=True,
+        relu_before_extra_convs=False,
+        no_norm_on_lateral=False,
         conv_cfg=dict(type='Conv3d'),
         norm_cfg=dict(type='BN3d', requires_grad=True),
         act_cfg=dict(type='ReLU'),
@@ -51,7 +51,7 @@ model = dict(
         anchor_generator=dict(
             type='AnchorGenerator3D',
             strides=[4, 8, 16, 32],
-            ratios=[(1, 1, 1), (2, 1, 1), (3, 1, 1)],
+            ratios=[(1.5, 1, 1), (2.5, 1, 1)],
             scales=[1.0],
             base_sizes=(10, 20, 20, 30),
             scale_major=True,
@@ -65,7 +65,7 @@ model = dict(
             std=0.01,
             override=dict(
                 type='Normal', name='retina_cls', std=0.01, bias_prob=0.01)),
-        feat_channels=2,
+        feat_channels=16,
         reg_decoded_bbox=False,
         bbox_coder=dict(
             type='DeltaXYZWHDBBoxCoder',
@@ -86,8 +86,8 @@ model = dict(
     train_cfg=dict(
         assigner=dict(
             type='MaxIoUAssigner',
-            pos_iou_thr=0.5,
-            neg_iou_thr=0.4,
+            pos_iou_thr=0.3,
+            neg_iou_thr=0.2,
             min_pos_iou=0,
             gt_max_assign_all=False,
             ignore_iof_thr=-1,
@@ -101,8 +101,8 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.5,
-        nms=dict(type='nms3d', iou_threshold=0.5),
+        score_thr=0.4,
+        nms=dict(type='nms3d', iou_threshold=0.4),
         max_per_img=100),
     pretrained=None,
     init_cfg=None)
@@ -194,25 +194,22 @@ data = dict(
                     dict(type='Collect3D', keys=['img'])
                 ])
         ]))
-optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
 lr_config = dict(
     policy='step',
     warmup='linear',
     warmup_iters=20,
     warmup_ratio=0.001,
-    step=[60])
+    step=[60, 150])
 optimizer_config = dict(grad_clip=None)
-checkpoint_config = dict(interval=4)
+checkpoint_config = dict(interval=10)
 log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
 momentum_config = None
 timer_config = dict(type='IterTimerHook')
 custom_hooks = [dict(type='NumClassCheckHook')]
-pred_root = '/media/g704-server/新加卷/XiShuFan/Dataset/'
 evaluation = dict(
-    interval=1,
-    metric='bbox',
-    out_dir='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/val_pred')
-runner = dict(type='EpochBasedRunner', max_epochs=100)
+    interval=1, metric='bbox', out_dir='/media/g704-server/xsf_tmp_dir')
+runner = dict(type='EpochBasedRunner', max_epochs=200)
 workflow = [('train', 1)]
 dist_params = dict(backend='nccl')
 log_level = 'INFO'

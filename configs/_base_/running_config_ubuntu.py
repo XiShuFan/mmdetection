@@ -1,5 +1,5 @@
 # optimizer
-optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
 
 """
 ======================================== 构造hooks的配置 =========================================
@@ -10,12 +10,12 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=20,
     warmup_ratio=0.001,
-    step=[60]
+    step=[40, 80]
 )
 # 反向传播+参数更新
 optimizer_config = dict(grad_clip=None)
 # 保存ckpt
-checkpoint_config = dict(interval=4)
+checkpoint_config = dict(interval=5)
 # 日志记录
 log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
 # 动量更新，用于3D目标检测
@@ -25,10 +25,8 @@ timer_config = dict(type='IterTimerHook')
 # 自定义hook
 custom_hooks = [dict(type='NumClassCheckHook')]
 
-pred_root = '/media/g704-server/新加卷/XiShuFan/Dataset/'
-# pred_root = 'D:/Dataset/'
 # eval hook，对应val数据集，优先级为 LOW
-evaluation = dict(interval=1, metric='bbox', out_dir=pred_root+'ToothCOCO/val_pred')
+evaluation = dict(interval=1, metric='bbox', out_dir='/media/g704-server/xsf_tmp_dir')
 
 """
 ====================================== 构造runner配置 =================================================
