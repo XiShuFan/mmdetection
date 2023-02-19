@@ -2,10 +2,10 @@ model = dict(
     type='RetinaNet',
     backbone=dict(
         type='ResNet',
-        depth=50,
+        depth=18,
         in_channels=1,
         stem_channels=None,
-        base_channels=4,
+        base_channels=2,
         num_stages=4,
         strides=(1, 2, 2, 2),
         dilations=(1, 1, 1, 1),
@@ -28,8 +28,8 @@ model = dict(
         pretrained=None),
     neck=dict(
         type='FPN',
-        in_channels=[16, 32, 64, 128],
-        out_channels=16,
+        in_channels=[2, 4, 8, 16],
+        out_channels=2,
         num_outs=4,
         start_level=0,
         end_level=-1,
@@ -44,14 +44,14 @@ model = dict(
     bbox_head=dict(
         type='RetinaHead',
         num_classes=1,
-        in_channels=16,
+        in_channels=2,
         stacked_convs=4,
         conv_cfg=dict(type='Conv3d'),
         norm_cfg=dict(type='BN3d', requires_grad=True),
         anchor_generator=dict(
             type='AnchorGenerator3D',
             strides=[4, 8, 16, 32],
-            ratios=[(1, 1, 1), (2, 1, 1), (3, 1, 1)],
+            ratios=[(2, 1, 1)],
             scales=[1.0],
             base_sizes=(10, 20, 20, 30),
             scale_major=True,
@@ -101,8 +101,8 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.5,
-        nms=dict(type='nms3d', iou_threshold=0.5),
+        score_thr=0.4,
+        nms=dict(type='nms3d', iou_threshold=0.4),
         max_per_img=100),
     pretrained=None,
     init_cfg=None)
@@ -129,14 +129,13 @@ test_pipeline = [
             dict(type='Collect3D', keys=['img'])
         ])
 ]
-data_root = '/media/g704-server/新加卷/XiShuFan/Dataset/'
+data_root = 'D:/Dataset/'
 data = dict(
     samples_per_gpu=2,
     workers_per_gpu=2,
     train=dict(
         type='ToothDataset',
-        ann_file=
-        '/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/annotations/instances_train2023.json',
+        ann_file='D:/Dataset/ToothCOCO/annotations/instances_train2023.json',
         pipeline=[
             dict(type='LoadNiiFromFile', to_float32=True),
             dict(type='LoadNiiAnnotations', with_bbox=True, with_label=True),
@@ -146,8 +145,7 @@ data = dict(
         ],
         classes=None,
         data_root=None,
-        img_prefix=
-        '/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/train2023/',
+        img_prefix='D:/Dataset/ToothCOCO/train2023/',
         seg_prefix=None,
         seg_suffix='.gz',
         proposal_file=None,
@@ -156,9 +154,8 @@ data = dict(
         file_client_args=dict(backend='disk')),
     val=dict(
         type='ToothDataset',
-        ann_file=
-        '/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/annotations/instances_val2023.json',
-        img_prefix='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/val2023/',
+        ann_file='D:/Dataset/ToothCOCO/annotations/instances_val2023.json',
+        img_prefix='D:/Dataset/ToothCOCO/val2023/',
         pipeline=[
             dict(type='LoadNiiFromFile', to_float32=True),
             dict(
@@ -176,9 +173,8 @@ data = dict(
         ]),
     test=dict(
         type='ToothDataset',
-        ann_file=
-        '/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/annotations/instances_val2023.json',
-        img_prefix='/media/g704-server/新加卷/XiShuFan/Dataset/ToothCOCO/val2023/',
+        ann_file='D:/Dataset/ToothCOCO/annotations/instances_val2023.json',
+        img_prefix='D:/Dataset/ToothCOCO/val2023/',
         pipeline=[
             dict(type='LoadNiiFromFile', to_float32=True),
             dict(
@@ -209,7 +205,7 @@ timer_config = dict(type='IterTimerHook')
 custom_hooks = [dict(type='NumClassCheckHook')]
 evaluation = dict(
     interval=1, metric='bbox', out_dir='D:/Dataset/ToothCOCO/val_pred')
-runner = dict(type='EpochBasedRunner', max_epochs=100)
+runner = dict(type='EpochBasedRunner', max_epochs=12)
 workflow = [('train', 1)]
 dist_params = dict(backend='nccl')
 log_level = 'INFO'

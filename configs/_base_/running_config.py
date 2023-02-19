@@ -32,7 +32,7 @@ evaluation = dict(interval=1, metric='bbox', out_dir='D:/Dataset/ToothCOCO/val_p
 ====================================== 构造runner配置 =================================================
 """
 # 大部分情况下，按照epoch就行。不指定的话，默认EpochBasedRunner
-runner = dict(type='EpochBasedRunner', max_epochs=100)
+runner = dict(type='EpochBasedRunner', max_epochs=12)
 
 """
 ====================================== workflow ======================================================

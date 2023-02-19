@@ -28,8 +28,8 @@ test_pipeline = [
         ]
     )
 ]
-data_root = '/media/g704-server/新加卷/XiShuFan/Dataset/'
-# data_root = 'D:/Dataset/'
+# data_root = '/media/g704-server/新加卷/XiShuFan/Dataset/'
+data_root = 'D:/Dataset/'
 # 数据集设置
 data = dict(
     # 本配置中没有指明dataloader，在代码中会自动按照下面两个参数设置
