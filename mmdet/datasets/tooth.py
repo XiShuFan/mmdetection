@@ -602,7 +602,7 @@ class ToothDataset(CustomDataset):
 
         # 还没搞懂怎么计算指标，返回一个空字典
         return {"tooth dataset":"metrics not support"}
-        
+
         metrics = metric if isinstance(metric, list) else [metric]
         allowed_metrics = ['bbox', 'segm', 'proposal', 'proposal_fast']
         for metric in metrics:
