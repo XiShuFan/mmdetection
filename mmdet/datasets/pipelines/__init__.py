@@ -14,7 +14,7 @@ from .transforms import (Albu, CopyPaste, CutOut, Expand, MinIoURandomCrop,
                          MixUp, Mosaic, Normalize, Pad, PhotoMetricDistortion,
                          RandomAffine, RandomCenterCropPad, RandomCrop,
                          RandomFlip, RandomShift, Resize, SegRescale,
-                         YOLOXHSVRandomAug, Pad3D, Resize3D)
+                         YOLOXHSVRandomAug, Pad3D, Resize3D, Normalize3D)
 
 __all__ = [
     'Compose', 'to_tensor', 'ToTensor', 'ImageToTensor', 'ToDataContainer',
@@ -28,5 +28,5 @@ __all__ = [
     'EqualizeTransform', 'BrightnessTransform', 'ContrastTransform',
     'Translate', 'RandomShift', 'Mosaic', 'MixUp', 'RandomAffine',
     'YOLOXHSVRandomAug', 'CopyPaste', 'LoadNiiFromFile', 'LoadNiiAnnotations', 'Pad3D', 'DefaultFormatBundle3D',
-    'Collect3D', 'NiiToTensor', 'Resize3D'
+    'Collect3D', 'NiiToTensor', 'Resize3D', 'Normalize3D'
 ]

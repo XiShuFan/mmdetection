@@ -106,10 +106,11 @@ model = dict(
         max_per_img=100),
     pretrained=None,
     init_cfg=None)
-img_norm_cfg = dict(mean=[0.0], std=[1.0], to_rgb=False)
+img_norm_cfg = dict(mean=0, std=1.0)
 train_pipeline = [
     dict(type='LoadNiiFromFile', to_float32=True),
     dict(type='LoadNiiAnnotations', with_bbox=True, with_label=True),
+    dict(type='Normalize3D', mean=0, std=1.0),
     dict(type='Pad3D', size_divisor=32),
     dict(type='DefaultFormatBundle3D'),
     dict(type='Collect3D', keys=['img', 'gt_bboxes', 'gt_labels'])
@@ -124,6 +125,7 @@ test_pipeline = [
         flip_direction='horizontal',
         transforms=[
             dict(type='Resize3D'),
+            dict(type='Normalize3D', mean=0, std=1.0),
             dict(type='Pad3D', size_divisor=32),
             dict(type='DefaultFormatBundle3D'),
             dict(type='Collect3D', keys=['img'])
@@ -139,6 +141,7 @@ data = dict(
         pipeline=[
             dict(type='LoadNiiFromFile', to_float32=True),
             dict(type='LoadNiiAnnotations', with_bbox=True, with_label=True),
+            dict(type='Normalize3D', mean=0, std=1.0),
             dict(type='Pad3D', size_divisor=32),
             dict(type='DefaultFormatBundle3D'),
             dict(type='Collect3D', keys=['img', 'gt_bboxes', 'gt_labels'])
@@ -166,6 +169,7 @@ data = dict(
                 flip_direction='horizontal',
                 transforms=[
                     dict(type='Resize3D'),
+                    dict(type='Normalize3D', mean=0, std=1.0),
                     dict(type='Pad3D', size_divisor=32),
                     dict(type='DefaultFormatBundle3D'),
                     dict(type='Collect3D', keys=['img'])
@@ -185,6 +189,7 @@ data = dict(
                 flip_direction='horizontal',
                 transforms=[
                     dict(type='Resize3D'),
+                    dict(type='Normalize3D', mean=0, std=1.0),
                     dict(type='Pad3D', size_divisor=32),
                     dict(type='DefaultFormatBundle3D'),
                     dict(type='Collect3D', keys=['img'])
