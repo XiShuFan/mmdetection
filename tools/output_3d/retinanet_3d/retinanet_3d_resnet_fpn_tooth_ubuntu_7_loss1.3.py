@@ -5,7 +5,7 @@ model = dict(
         depth=50,
         in_channels=1,
         stem_channels=None,
-        base_channels=64,
+        base_channels=4,
         num_stages=4,
         strides=(1, 2, 2, 2),
         dilations=(1, 1, 1, 1),
@@ -14,24 +14,12 @@ model = dict(
         deep_stem=False,
         avg_down=False,
         avg_cfg=dict(type='AvgPool3d'),
-<<<<<<< HEAD
         frozen_stages=-1,
         conv_cfg=dict(type='Conv3d'),
         norm_cfg=dict(type='BN3d', requires_grad=True),
         maxpool_cfg=dict(type='MaxPool3d'),
         norm_eval=False,
         init_cfg=dict(type='Kaiming', layer='Conv3d'),
-=======
-        frozen_stages=1,
-        conv_cfg=dict(type='Conv3d'),
-        norm_cfg=dict(type='BN3d', requires_grad=True),
-        maxpool_cfg=dict(type='MaxPool3d'),
-        norm_eval=True,
-        init_cfg=dict(
-            type='Pretrained',
-            checkpoint='/media/g704-server/新加卷/XiShuFan/pretrain/resnet_50.pth'
-        ),
->>>>>>> aa75a67a1379e724299839e5e47dc718e207a6fb
         zero_init_residual=True,
         dcn=None,
         stage_with_dcn=(False, False, False, False),
@@ -40,17 +28,10 @@ model = dict(
         pretrained=None),
     neck=dict(
         type='FPN',
-<<<<<<< HEAD
         in_channels=[16, 32, 64, 128],
         out_channels=16,
         num_outs=4,
         start_level=0,
-=======
-        in_channels=[256, 512, 1024, 2048],
-        out_channels=16,
-        num_outs=3,
-        start_level=1,
->>>>>>> aa75a67a1379e724299839e5e47dc718e207a6fb
         end_level=-1,
         add_extra_convs='on_input',
         relu_before_extra_convs=False,
@@ -69,18 +50,10 @@ model = dict(
         norm_cfg=dict(type='BN3d', requires_grad=True),
         anchor_generator=dict(
             type='AnchorGenerator3D',
-<<<<<<< HEAD
             strides=[4, 8, 16, 32],
-            ratios=[(1.5, 1, 1), (2.5, 1, 1), (3.5, 1, 1)],
+            ratios=[(1.5, 1.0, 1.0), (2.0, 1.0, 1.0)],
             scales=[1.0],
-            base_sizes=(10, 20, 20, 30),
-=======
-            strides=[8, 16, 32],
-            ratios=[(1.5, 1.0, 1.0), (2.0, 1.0, 0.5), (2.0, 1.0, 1.0),
-                    (1.5, 1.0, 0.5), (1.5, 0.5, 0.5)],
-            scales=[1.0],
-            base_sizes=(25, 25, 25),
->>>>>>> aa75a67a1379e724299839e5e47dc718e207a6fb
+            base_sizes=(20, 25, 25, 30),
             scale_major=True,
             octave_base_scale=None,
             scales_per_octave=None,
@@ -107,25 +80,14 @@ model = dict(
             gamma=2.0,
             alpha=0.25,
             reduction='mean',
-<<<<<<< HEAD
             loss_weight=1.0,
             activated=False),
         loss_bbox=dict(type='L1Loss', reduction='mean', loss_weight=2.0)),
     train_cfg=dict(
         assigner=dict(
             type='MaxIoUAssigner',
-            pos_iou_thr=0.3,
-            neg_iou_thr=0.2,
-=======
-            loss_weight=1.5,
-            activated=False),
-        loss_bbox=dict(type='L1Loss', reduction='mean', loss_weight=1.5)),
-    train_cfg=dict(
-        assigner=dict(
-            type='MaxIoUAssigner',
-            pos_iou_thr=0.5,
-            neg_iou_thr=0.4,
->>>>>>> aa75a67a1379e724299839e5e47dc718e207a6fb
+            pos_iou_thr=0.4,
+            neg_iou_thr=0.3,
             min_pos_iou=0,
             gt_max_assign_all=False,
             ignore_iof_thr=-1,
@@ -139,13 +101,8 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-<<<<<<< HEAD
-        score_thr=0.6,
-        nms=dict(type='nms3d', iou_threshold=0.6),
-=======
-        score_thr=0.4,
-        nms=dict(type='nms3d', iou_threshold=0.3),
->>>>>>> aa75a67a1379e724299839e5e47dc718e207a6fb
+        score_thr=0.43,
+        nms=dict(type='nms3d', iou_threshold=0.05),
         max_per_img=100),
     pretrained=None,
     init_cfg=None)
@@ -174,11 +131,7 @@ test_pipeline = [
 ]
 data_root = '/media/g704-server/新加卷/XiShuFan/Dataset/'
 data = dict(
-<<<<<<< HEAD
     samples_per_gpu=2,
-=======
-    samples_per_gpu=1,
->>>>>>> aa75a67a1379e724299839e5e47dc718e207a6fb
     workers_per_gpu=2,
     train=dict(
         type='ToothDataset',
@@ -241,38 +194,22 @@ data = dict(
                     dict(type='Collect3D', keys=['img'])
                 ])
         ]))
-<<<<<<< HEAD
 optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
-=======
-optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
->>>>>>> aa75a67a1379e724299839e5e47dc718e207a6fb
 lr_config = dict(
     policy='step',
     warmup='linear',
     warmup_iters=20,
-<<<<<<< HEAD
     warmup_ratio=0.001,
-    step=[40, 80])
-optimizer_config = dict(grad_clip=None)
-checkpoint_config = dict(interval=5)
-log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
-=======
-    warmup_ratio=0.0001,
-    step=[70, 90])
+    step=[60, 80])
 optimizer_config = dict(grad_clip=None)
 checkpoint_config = dict(interval=10)
-log_config = dict(interval=2, hooks=[dict(type='TextLoggerHook')])
->>>>>>> aa75a67a1379e724299839e5e47dc718e207a6fb
+log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
 momentum_config = None
 timer_config = dict(type='IterTimerHook')
 custom_hooks = [dict(type='NumClassCheckHook')]
 evaluation = dict(
     interval=1, metric='bbox', out_dir='/media/g704-server/xsf_tmp_dir')
-<<<<<<< HEAD
-runner = dict(type='EpochBasedRunner', max_epochs=12)
-=======
 runner = dict(type='EpochBasedRunner', max_epochs=100)
->>>>>>> aa75a67a1379e724299839e5e47dc718e207a6fb
 workflow = [('train', 1)]
 dist_params = dict(backend='nccl')
 log_level = 'INFO'

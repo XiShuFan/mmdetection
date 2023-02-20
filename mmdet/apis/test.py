@@ -30,6 +30,7 @@ def single_gpu_test(model,
             result = model(return_loss=False, rescale=True, **data)
 
         batch_size = len(result)
+        print(f'\tDetected boxes: {result[0][0].shape[0]}')
         # 2D图像可以进行展示与保存
         if result[0][0].shape[0] > 0 and result[0][0].shape[1] == 5:
             if show or out_dir:
