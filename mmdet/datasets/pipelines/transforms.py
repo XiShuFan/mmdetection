@@ -864,6 +864,48 @@ class Normalize:
 
 
 @PIPELINES.register_module()
+class Normalize3D:
+    """Normalize the image.
+    """
+
+    def __init__(self, mean=0, std=1):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, results):
+        """Call function to normalize images.
+
+        Args:
+            results (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Normalized results, 'img_norm_cfg' key is added into
+                result dict.
+        """
+        for key in results.get('img_fields', ['img']):
+            # 获取图像的numpy数组
+            volume = results[key]
+            pixels = volume[volume > 0]
+            mean = pixels.mean()
+            std = pixels.std()
+            # 图像归一化到0~1区间
+            out = (volume - mean) / std
+            out_random = np.random.normal(0, 1, size=volume.shape)
+            out[volume == 0] = out_random[volume == 0]
+
+            self.mean = mean
+            self.std = std
+
+            results[key] = out
+        results['img_norm_cfg'] = dict(mean=self.mean, std=self.std)
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'(mean={self.mean}, std={self.std})'
+        return repr_str
+
+@PIPELINES.register_module()
 class RandomCrop:
     """Random crop the image & bboxes & masks.
 

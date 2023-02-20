@@ -34,7 +34,7 @@ evaluation = dict(interval=1, metric='bbox', out_dir=pred_root+'ToothCOCO/val_pr
 ====================================== 构造runner配置 =================================================
 """
 # 大部分情况下，按照epoch就行。不指定的话，默认EpochBasedRunner
-runner = dict(type='EpochBasedRunner', max_epochs=200)
+runner = dict(type='EpochBasedRunner', max_epochs=12)
 
 """
 ====================================== workflow ======================================================

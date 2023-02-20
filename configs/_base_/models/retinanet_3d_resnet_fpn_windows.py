@@ -192,9 +192,9 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.4,
+        score_thr=0.01,
         # 得写一个nms3D
-        nms=dict(type='nms3d', iou_threshold=0.4),
+        nms=dict(type='nms3d', iou_threshold=0.5),
         max_per_img=100
     ),
     # 弃用
