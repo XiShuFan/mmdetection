@@ -4,13 +4,13 @@ model = dict(
     backbone=dict(
         type='ResNet',
         # resnet架构
-        depth=50,
+        depth=34,
         # 输入通道数
         in_channels=1,
         # stem部分输出通道数，默认与base_channel一致
         stem_channels=None,
         # 基准输出channel
-        base_channels=64,
+        base_channels=16,
         # resnet使用的阶段数，默认为4
         num_stages=4,
         # 每个stage第一个block的stride，用于减半长宽。第一个stage用maxpool减半长宽
@@ -28,7 +28,7 @@ model = dict(
         # avg pool 配置
         avg_cfg=dict(type='AvgPool3d'),
         # 需要冻结的层
-        frozen_stages=1,
+        frozen_stages=-1,
         # 卷积层配置，可以更改为Conv1d, Conv2d, Conv3d。但是不要去改kernel等参数，因为这个是公用的，不同层不一样
         conv_cfg=dict(type='Conv3d'),
         # bn层配置，可以更改为BN1d, BN2d, BN3d
@@ -38,7 +38,7 @@ model = dict(
         # bn层是否使用eval模式，不更新参数
         norm_eval=True,
         # 加载预训练模型，或者初始化方法
-        init_cfg=dict(type='Pretrained', checkpoint='/media/g704-server/新加卷/XiShuFan/pretrain/resnet_50.pth'),
+        init_cfg=dict(type='Kaiming', layer='Conv3d'),
         # dict(type='Pretrained', checkpoint='../checkpoints/resnet/resnet50-19c8e357.pth')
         # dict(type='Kaiming', layer='Conv3d')
         # 是否在最后一个bn层初始化为0
@@ -54,7 +54,7 @@ model = dict(
     neck=dict(
         type='FPN',
         # 经过backbone输出的不同stage特征图channel
-        in_channels=[256, 512, 1024, 2048],
+        in_channels=[16, 32, 64, 128],
         # 经过neck输出的channel
         out_channels=16,
         # neck需要输出多少个特征图
@@ -66,7 +66,7 @@ model = dict(
         # 增加卷积获得额外的输出，否则使用maxpool获得额外的输出。可选参数：on_input, on_lateral, on_output
         add_extra_convs='on_input',
         # 是否在extra_convs之前添加relu
-        relu_before_extra_convs=False,
+        relu_before_extra_convs=True,
         # 是否在lateral卷积层之前使用BN
         no_norm_on_lateral=False,
         # 卷积层配置
@@ -98,7 +98,8 @@ model = dict(
             # 多阶段特征图相对于原始图像的stride
             strides=[8, 16, 32],
             # anchor的depth和height和width与base_size的比例
-            ratios=[(1.5, 1.0, 1.0), (2.0, 1.0, 0.5), (2.0, 1.0, 1.0), (1.5, 1.0, 0.5), (1.5, 0.5, 0.5)],
+            ratios=[(1.5, 1.0, 1.0), (2.0, 1.0, 0.5), (2.0, 0.5, 0.5), (2.5, 1.0, 1.0), 
+                    (1.5, 1.0, 0.5), (1.5, 0.5, 0.5), (2.0, 0.5, 1.0), (1.5, 0.5, 1.0)],
             # anchor的缩放比例，不可以与octave_base_scale和scales_per_octave同时设置
             scales=[1.0],
             # 多阶段特征图的anchor的基础大小，如果None，则使用strides（挺合理）
@@ -178,7 +179,7 @@ model = dict(
             ignore_wrt_candidates=True,
             # 是否允许低质量匹配，与min_pos_iou相关。看了代码，我认为不要用这个更好。
             # 但是加上这个好像训练收敛了，我觉得原因在于我的anchor没有构造好，导致gt对应不到anchor
-            match_low_quality=True,
+            match_low_quality=False,
             # 在gpu上实现
             gpu_assign_thr=-1,
             # 计算IoU的方法
@@ -195,7 +196,7 @@ model = dict(
         min_bbox_size=0,
         score_thr=0.4,
         # 得写一个nms3D
-        nms=dict(type='nms3d', iou_threshold=0.3),
+        nms=dict(type='nms3d', iou_threshold=0.4),
         max_per_img=100
     ),
     # 弃用

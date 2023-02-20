@@ -2,10 +2,10 @@ model = dict(
     type='RetinaNet',
     backbone=dict(
         type='ResNet',
-        depth=34,
+        depth=50,
         in_channels=1,
         stem_channels=None,
-        base_channels=16,
+        base_channels=64,
         num_stages=4,
         strides=(1, 2, 2, 2),
         dilations=(1, 1, 1, 1),
@@ -14,12 +14,15 @@ model = dict(
         deep_stem=False,
         avg_down=False,
         avg_cfg=dict(type='AvgPool3d'),
-        frozen_stages=-1,
+        frozen_stages=1,
         conv_cfg=dict(type='Conv3d'),
         norm_cfg=dict(type='BN3d', requires_grad=True),
         maxpool_cfg=dict(type='MaxPool3d'),
         norm_eval=True,
-        init_cfg=dict(type='Kaiming', layer='Conv3d'),
+        init_cfg=dict(
+            type='Pretrained',
+            checkpoint='/media/g704-server/新加卷/XiShuFan/pretrain/resnet_50.pth'
+        ),
         zero_init_residual=True,
         dcn=None,
         stage_with_dcn=(False, False, False, False),
@@ -28,13 +31,13 @@ model = dict(
         pretrained=None),
     neck=dict(
         type='FPN',
-        in_channels=[16, 32, 64, 128],
+        in_channels=[256, 512, 1024, 2048],
         out_channels=16,
         num_outs=3,
         start_level=1,
         end_level=-1,
         add_extra_convs='on_input',
-        relu_before_extra_convs=True,
+        relu_before_extra_convs=False,
         no_norm_on_lateral=False,
         conv_cfg=dict(type='Conv3d'),
         norm_cfg=dict(type='BN3d', requires_grad=True),
@@ -51,9 +54,8 @@ model = dict(
         anchor_generator=dict(
             type='AnchorGenerator3D',
             strides=[8, 16, 32],
-            ratios=[(1.5, 1.0, 1.0), (2.0, 1.0, 0.5), (2.0, 0.5, 0.5),
-                    (2.5, 1.0, 1.0), (1.5, 1.0, 0.5), (1.5, 0.5, 0.5),
-                    (2.0, 0.5, 1.0), (1.5, 0.5, 1.0)],
+            ratios=[(1.5, 1.0, 1.0), (2.0, 1.0, 0.5), (2.0, 1.0, 1.0),
+                    (1.5, 1.0, 0.5), (1.5, 0.5, 0.5)],
             scales=[1.0],
             base_sizes=(25, 25, 25),
             scale_major=True,
@@ -94,7 +96,7 @@ model = dict(
             gt_max_assign_all=False,
             ignore_iof_thr=-1,
             ignore_wrt_candidates=True,
-            match_low_quality=False,
+            match_low_quality=True,
             gpu_assign_thr=-1,
             iou_calculator=dict(type='BboxOverlaps3D')),
         allowed_border=-1,
@@ -103,8 +105,8 @@ model = dict(
     test_cfg=dict(
         nms_pre=1000,
         min_bbox_size=0,
-        score_thr=0.4,
-        nms=dict(type='nms3d', iou_threshold=0.4),
+        score_thr=0.35,
+        nms=dict(type='nms3d', iou_threshold=0.5),
         max_per_img=100),
     pretrained=None,
     init_cfg=None)
@@ -202,7 +204,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=20,
     warmup_ratio=0.0001,
-    step=[80])
+    step=[70, 90])
 optimizer_config = dict(grad_clip=None)
 checkpoint_config = dict(interval=10)
 log_config = dict(interval=2, hooks=[dict(type='TextLoggerHook')])

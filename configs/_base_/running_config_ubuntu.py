@@ -10,7 +10,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=20,
     warmup_ratio=0.0001,
-    step=[70, 90]
+    step=[80]
 )
 # 反向传播+参数更新
 optimizer_config = dict(grad_clip=None)

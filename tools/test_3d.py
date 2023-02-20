@@ -24,10 +24,10 @@ from mmdet.utils import (build_ddp, build_dp, compat_cfg, get_device,
 def parse_args():
     parser = argparse.ArgumentParser(description='MMDet test (and eval) a model')
     parser.add_argument('--config', 
-                        default='output_3d/retinanet_3d/retinanet_3d_resnet_fpn_tooth_ubuntu_8_loss1.0.py', 
+                        default='output_3d/retinanet_3d/retinanet_3d_resnet_fpn_tooth_ubuntu_11_loss1.5.py', 
                         help='test config file path')
     parser.add_argument('--checkpoint', 
-                        default='output_3d/retinanet_3d/epoch_100_8_loss1.0.pth',
+                        default='output_3d/retinanet_3d/epoch_100_11_loss1.5.pth',
                         help='checkpoint file')
     parser.add_argument('--work-dir',
                         default='output_3d/retinanet_3d',
